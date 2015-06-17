@@ -6,38 +6,129 @@ import csv            # KnjiĂ„â€šĂ˘â‚¬ĹľÄ‚â€žĂ˘â‚¬Â
 import urllib.request # KnjiĂ„â€šĂ˘â‚¬ĹľÄ‚â€žĂ˘â‚¬Â¦Ă„â€šĂ˘â‚¬ĹľÄ‚â€žĂ„Äľnica za delo s spletom
 import re             # KnjiĂ„â€šĂ˘â‚¬ĹľÄ‚â€žĂ˘â‚¬Â¦Ă„â€šĂ˘â‚¬ĹľÄ‚â€žĂ„Äľnica za delo z regularnimi izrazi
 import numpy
+import time
 from time import time,sleep
 
 from bs4 import BeautifulSoup
 
 #takole naredimo novo mapo mogoce
 #os.mkdir('novaMapa')
-
-
-
 ### PARSANJE PODATKOV
 #namesto aapl bodo prisli drugi tikerji
 ##URL = "http://www.marketwatch.com/investing/stock/aapl/financials/income/quarter"
-##
 ##spletna_stran = urllib.request.urlopen(URL)
 ###neki od parsanja
 ###http://blog.miguelgrinberg.com/post/easy-web-scraping-with-python
 ###http://www.pythoncentral.io/introduction-to-sqlite-in-python/
-##
 ###http://pandas.pydata.org/
 ###http://www.nasdaq.com/symbol/aapl/financials?query=income-statement
 ###https://scottishsnow.wordpress.com/2014/08/14/writing-to-a-database-r-and-sqlite/
 ###http://www.google.com/finance?q=NYSE%3AAAP&fstype=ii&ei=8BNRVdGRKYjisgHG-ICICQ
 ###http://finance.yahoo.com/q/hp?s=AAPL&a=11&b=12&c=1980&d=01&e=8&f=2015&g=d
-##document = spletna_stran.readlines()
-##
-##docHtml = spletna_stran.read()
-##
-##soup = BeautifulSoup(docHtml)
-##
-##vrstica1 = document[0]
-##for i in range(1,20):
-##    vrstica1 += str(document(i))
+
+######
+
+
+
+
+
+
+###################################### sqlite NACIN BAZE
+
+#### pogledam ce je baza v datoteki
+# Datoteka, v kateri je baza
+BAZA = "pozense.db"
+# Naredimo povezavo z bazo. Funkcija sqlite3.connect vrne objekt, ki hrani podatke o povezavi z bazo.
+baza = sqlite3.connect(BAZA)
+
+baza.execute('''CREATE TABLE IF NOT EXISTS sektor (
+  ime_sektorja TEXT PRIMARY KEY)''')
+
+baza.execute('''CREATE TABLE IF NOT EXISTS podjetja (
+  ticker    TEXT PRIMARY KEY,
+  ime   TEXT,
+  IPOyear INTEGER,
+  sektor TEXT,
+  FOREIGN KEY(sektor) REFERENCES sektor(ime_sektorja))
+''')
+## tiker in datum skupaj bosta primarna kljuca!!
+baza.execute('''CREATE TABLE IF NOT EXISTS cene (
+    ticker TEXT,
+    datum DATE,
+    volume INTEGER,
+    adjPrice FLOAT(3,2),
+    FOREIGN KEY(ticker) REFERENCES podjetja(ticker),
+    PRIMARY KEY(ticker,datum))
+''')
+baza.execute('''CREATE TABLE IF NOT EXISTS fundamentalni (
+    ticker TEXT,
+    datum DATE,
+    NetIncome FLOAT,
+    SharesOutstand FLOAT,
+    TotalAssets FLOAT,
+    ShareholdEquity FLOAT,
+    FOREIGN KEY(ticker) REFERENCES podjetja(ticker),
+    PRIMARY KEY(ticker,datum))
+''')
+
+### UPDATE BAZE
+#pogleda uskaljenost datumov v bazi in danasnjega datuma
+lokalniCas=time.localtime()
+datumDanes = str(lokalniCas[0]) + '-' + str(lokalniCas[1]) +'-'+str(lokalniCas[2])
+
+datumi = (baza.execute("SELECT DISTINCT datum FROM cene ORDER BY datum DESC;")).fetchall()
+datumVBazi = datumi[1][0] #drugi element seznama datumov prvi v tuplu
+
+if datumPreiskus > datumVBazi:
+
+    ###posodobi cene v bazi od datumaVBazi do datumaPreizkus
+    ## ce datumVBazi ne obstaja po tem nastaviš nek poljuben
+    ##obsotjeco bazo posodobim
+    tikerjiUpdate = (baza.execute("SELECT ticker  FROM podjetja")).fetchall()
+    # a= meseci (oktober 09 zacne z 0 !!) b = dnevi c= leto   (a,b,c) zacetni datum
+    # (d,e,f) koncni datum
+    zacDatum = datumVBazi.split(sep='-')
+    a = str(int(zacDatum[1])-1)
+    koncDate = datumDanes.split(sep='-')
+    d = str(int(koncDate[1])-1)
+    ##tikerjiUpdate so oblike [('nekej',),.. (...)]
+    for i in tikerjiUpdate:
+        try:
+            #ce zapisem cez vec vrstic mori, zato ena dolga vrstica
+            delnicaSoup = BeautifulSoup((urllib.request.urlopen("""http://real-chart.finance.yahoo.com/table.csv?s={0}&a={1}&b={2}&c={3}&d={4}&e={5}&f={6}&g=d&ignore=.csv""".format(i[0],a,zacDatum[2],zacDatum[0],d,koncDate[2],koncDate[0]))).read())
+            besedilo = delnicaSoup.getText() #potegnem tekst ven
+            besediloSez= besedilo.splitlines()
+            st = 0
+            for row in besediloSez:
+                if st==0: row = next(besediloSez)
+                else:
+                    vrstica = row.split(sep=',')
+                    baza.execute("""INSERT INTO cene VALUES (?,?,?,?)""",(i[0],vrstica[0],vrstica[5],vrstica[6]))
+        except:
+            print("neka neznana izjema se je pojavila ")
+    baza.commit()
+
+
+#ce zapisem cez vec vrstic mori, zato ena dolga vrstica
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###branje podatkov iz csv datotekic
 def poisciTikerjeZpodatki(csvfile='incomeglavni.csv'):
