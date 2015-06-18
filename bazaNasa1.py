@@ -7,6 +7,7 @@ import urllib.request # KnjiĂ„â€šĂ˘â‚¬ĹľÄ‚â€žĂ˘â‚¬Â
 import re             # KnjiĂ„â€šĂ˘â‚¬ĹľÄ‚â€žĂ˘â‚¬Â¦Ă„â€šĂ˘â‚¬ĹľÄ‚â€žĂ„Äľnica za delo z regularnimi izrazi
 import numpy
 import time
+import datetime
 from time import time,sleep
 
 from bs4 import BeautifulSoup
@@ -79,7 +80,20 @@ datumDanes = str(lokalniCas[0]) + '-' + str(lokalniCas[1]) +'-'+str(lokalniCas[2
 datumi = (baza.execute("SELECT DISTINCT datum FROM cene ORDER BY datum DESC;")).fetchall()
 datumVBazi = datumi[1][0] #drugi element seznama datumov prvi v tuplu
 
-if datumPreiskus > datumVBazi:
+#datum fundamentalnih podatkov
+dat = (baza.execute("SELECT DISTINCT datum FROM fundamentalni ORDER BY  datum DESC;")).fetchall()
+datVBazFund = [dat[i][0] for i in range(len(dat))] #datumi fundamentalnih podatkov v bazi
+               ###### za datume
+soup = BeautifulSoup(urllib.request.urlopen('http://www.marketwatch.com/investing/stock/{0}/financials/income/quarter'.format('AAPL')).read())
+neki = soup('table',{'class':'crDataTable'})[0].thead('th')
+datMW = [] #datumi, ki jih ponuja MW
+pretMes =  {'Mar':'03','Jun':'06','Sep':'09','Dec':'12'}
+for row in range(1,len(neki)-1):
+    razdelim = (neki[row].contents)[0].split('-')
+    datMW.append(razdelim[2] + '-' + pretMes[razdelim[1]] + '-' + razdelim[0])
+
+
+if datumDanes > datumVBazi:
 
     ###posodobi cene v bazi od datumaVBazi do datumaPreizkus
     ## ce datumVBazi ne obstaja po tem nastaviš nek poljuben
@@ -108,8 +122,15 @@ if datumPreiskus > datumVBazi:
             print("neka neznana izjema se je pojavila ")
     baza.commit()
 
+for objava in range(len(datMW)):
+    if not(datMW[objava] in datVBazFund):
+        ###začneš posodabljati fundamentalen podatke
+        ### datum ki manjka ti pove stolpec ki ga bo potrebno posodobiti
 
-#ce zapisem cez vec vrstic mori, zato ena dolga vrstica
+
+    else:pass
+     #nic je vse v redu
+
 
 
 
