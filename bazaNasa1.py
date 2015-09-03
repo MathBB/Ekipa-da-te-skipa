@@ -73,6 +73,7 @@ baza.execute('''CREATE TABLE IF NOT EXISTS fundamentalni (
 ''')
 
 ### UPDATE BAZE
+
 #pogleda uskaljenost datumov v bazi in danasnjega datuma
 lokalniCas=time.localtime()
 datumDanes = str(lokalniCas[0]) + '-' + str(lokalniCas[1]) +'-'+str(lokalniCas[2])
@@ -544,6 +545,7 @@ zaVBazo=[]
 for i in range(0,len(imenaPolnihTikerjev),100):
     zaVBazo.append(imenaPolnihTikerjev[i].strip('.csv'))
 #polnem tabelo company
+
 with open('AmexNasdaqNyseList.csv','r') as delnice:
     preberem = csv.reader(delnice,delimiter=',',quotechar ='"')
     for row in preberem:
