@@ -60,14 +60,14 @@ shinyUI(navbarPage("Projekt za osnove podatkovnih baz", fluid = TRUE,
                             
                               h3("Navodilo za uporabo"),
                               
-                              helpText("v spodnje okence vpi?ite svojo regresijsko formulo. Med spremenljivkami dodajajte + .
+                              helpText("v spodnje okence vpisite svojo regresijsko formulo. Med spremenljivkami dodajajte + .
                                        Za polinomske funkcije uporabite funkcijo I() Npr. I(x^2). Druge funkcije ki se pridejo prav exp(x), log(x).
                                        Vkolikor delate regresijo brez regresijske konstante na koncu dodajte -1   "),
                                 
                                 textInput("regresija", label = h3("Napi?ite poljubno regresijsko formulo"), value = "Portfelj1 ~ "),
                                 br(),
                                 br(),
-                                textInput("fit1", label = h5("Napi?ite funkcijo ki aproksimira podatke"), value = "y ~ x"),
+                                textInput("fit1", label = h5("Napisite funkcijo ki aproksimira podatke"), value = "y ~ x"),
                                 
                                 selectInput("variable1", "Pojasnjevalna spremenljivka:", c("Portfelj1", "Portfelj2", "MKT", "SMB", "HML", "WML", "risk-free_r")),
                                 
@@ -101,15 +101,8 @@ shinyUI(navbarPage("Projekt za osnove podatkovnih baz", fluid = TRUE,
                                         
                                         #dataTableOutput("priprava_podatkov")
                                         )
-                   ),
-tabPanel("Go Pro",
-         tabsetPanel("Panel 1.x",
-                     tabPanel("Panel 1.1"),
-                     tabPanel("Panel 1.2")
-         )),
-navbarMenu("More",
-           tabPanel("Sub-Component A"),
-           tabPanel("Sub-Component B"))
+                   )
+
 ))
 
 
